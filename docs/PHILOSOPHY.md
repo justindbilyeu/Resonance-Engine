@@ -2,263 +2,195 @@
 
 **Creed:** *Coherence is earned by constraints.*
 
------
+Resonance Engine exists to convert high-dimensional human intuition into **testable structure**—without collapsing into narrative coherence.
+
+---
 
 ## What We Found First
 
-Resonance isn’t just poetry. When you set up the right medium—the right structural relationships, the right phase dynamics—coherent structure actually emerges and persists. This isn’t magic; it’s what coupled oscillators do.
+Resonance isn’t poetry. In the right medium—given the right coupling and boundary conditions—coherent structure **emerges and persists**. That’s what coupled oscillators do.
 
-Then we did the grown-up thing: we forced it into math and tests.
+We then forced this into the adult world: **math, tests, and falsification**.
 
-Now the move is bigger and cleaner.
+Now we apply the same discipline to discovery itself.
 
------
+---
 
 ## What Resonance Engine Is
 
 **A shared excitable medium for human + machine cognition.**
 
-A way for human intuition and machine combinatorial reach to couple without collapsing into narrative. The coupling isn’t “trust.” It’s **constraints.**
+A way for human intuition and machine combinatorial reach to couple **without becoming a story-generator**. The coupling is not “trust.” It is **constraints**.
 
-### The Division of Labor
+### Division of Labor
 
 **Human provides:**
-
-- Purpose, meaning, selection pressure
-- The “why this matters”
+- Purpose, meaning, selection pressure (“why this matters”)
 - Gut-level anomaly detection
 - Semantic coherence under uncertainty
 
 **Machine provides:**
-
-- Search across high-dimensional solution spaces
-- Decomposition into testable components
-- Adversarial enumeration (finding holes)
-- Scaffolding and relentless consistency checks
+- Search across high-dimensional spaces
+- Decomposition into testable sub-claims
+- Adversarial enumeration (failure modes, confounds)
+- Scaffolding + consistency checks
 
 **Resonance Engine provides:**
+- The medium and rules that let interaction **ring instead of drift**
+- Constraints that transform resonance into **experiments**
+- An artifact trail that survives the conversation
 
-- The medium and the rules
-- The structural relationships that let interaction ring instead of drift
-- The constraints that transform resonance into experiments
+---
 
------
+## Architecture: Coupled Oscillators for Thought
 
-## The Architecture: Coupled Oscillators for Thought
+The Engine is not just a pipeline. It’s a dynamical system with phase relationships.
 
-The Engine isn’t a pipeline—it’s a dynamical system with phase relationships.
+### The Oscillators (Roles)
 
-### The Oscillators
+**Builder** (synchronizing tendency)
+- Generates hypotheses and candidate structure
+- Seeks compressions and patterns
+- Converges toward a coherent claim
 
-**Builder** tries to synchronize (form a coherent claim)
-
-- Generates hypotheses
-- Seeks patterns
-- Attempts to construct testable structure
-- **Phase behavior:** Converges toward coherence
-
-**Skeptic** introduces counter-phase (stress tests + nulls)
-
-- Identifies failure modes
-- Generates adversarial cases
+**Skeptic** (counter-phase)
+- Identifies failure modes and confounds
 - Forces explicit rejection criteria
-- **Phase behavior:** Diverges to explore failure space
+- Diverges into failure space to keep coherence honest
 
-**Auditor** enforces boundary conditions (falsifiability, prereg locks)
+**Auditor** (constraint surface / boundary conditions)
+- Ensures the claim can actually fail
+- Enforces prereg integrity (locks, stopping rules, leakage checks)
+- Validates reproducibility requirements
 
-- Validates that claims can actually fail
-- Checks that nulls are specific enough
-- Ensures reproducibility constraints are met
-- **Phase behavior:** Acts as constraint surface
+**Operator** (crystallization)
+- Produces runnable code and tests
+- Turns protocols into commit-ready artifacts
+- Freezes oscillation into executable structure
 
-**Operator** turns it into executable structure (code + tests)
+### The Controller (Damping and Drive)
 
-- Generates runnable implementations
-- Creates validation scaffolds
-- Produces commit-ready artifacts
-- **Phase behavior:** Crystallizes oscillation into static structure
+The **Coherence Controller** manages oscillation dynamics, not “process.”
 
-### The Controller: Damping and Drive
+- **If** agreement rises too fast **then** inject diversity  
+  (prevent premature convergence / narrative lock-in)
 
-The **Coherence Controller** doesn’t manage process—it manages oscillation dynamics:
+- **If** disagreement stays high and constraint health does not improve **then** restart  
+  (kill degenerate oscillations / tighten the seed)
 
-**Too much agreement too fast** → inject diversity
+- **If** constraint health rises stage-to-stage **then** converge and preregister  
+  (lock the wave; transition from exploration to execution)
 
-- Avoid narrative lock-in
-- Prevent premature convergence
-- Force exploration of alternative framings
+---
 
-**Too much disagreement with no constraint improvement** → restart
+## Constraints Are the Medium
 
-- Avoid infinite debate
-- Kill degenerate oscillations
-- Re-seed with tighter constraints
+Constraints are not limitations. They are the **boundary conditions** that allow coherent structure to exist at all.
 
-**Constraint health rising** → converge and preregister
+Without constraints:
+- you get human + machine conversation (useful, but everywhere)
 
-- Lock the wave
-- Crystallize into experimental protocol
-- Transition from exploration to execution
+With constraints:
+- you get coupled oscillators that can explore spaces **neither could reach alone**
 
------
+**Rigor is not a tax on discovery. It is the structure that makes discovery possible.**
 
-## What This Unlocks: Reach, Not Magic
+---
 
-Resonance Engine makes certain classes of questions **computable** that are normally unworkable:
+## What This Unlocks (Reach, Not Magic)
 
-### Questions That Are Too:
+Resonance Engine makes certain questions *computable* that are normally unworkable:
+
+### Questions that are too…
 
 **High-dimensional**
-
-- Multiple interacting factors
-- No obvious decomposition
-- Hard to isolate variables
-  → Engine forces progressive constraint until dimensionality becomes tractable
+- many interacting factors, no obvious decomposition  
+→ Engine forces progressive constraint until dimensionality becomes tractable
 
 **Cross-disciplinary**
-
-- Requires integration across domains
-- Different empirical standards
-- Conflicting terminology
-  → Engine enforces operational definitions independent of domain jargon
+- conflicting standards and terminology  
+→ Engine enforces operational definitions independent of jargon
 
 **Philosophical to operationalize**
-
-- Abstract concepts
-- Hard to define observables
-- Easy to talk past each other
-  → Engine requires measurable outcomes before accepting claims
+- abstract concepts with unclear observables  
+→ Engine requires measurable outcomes before accepting claims
 
 **Easy to self-deceive about**
+- narrative coherence masking falsifiability gaps  
+→ Skeptic role forces confrontation with failure modes
 
-- Confirmation bias
-- Narrative coherence masking falsifiability gaps
-- Motivated reasoning
-  → Engine’s adversarial structure (Skeptic role) forces confrontation with failure modes
+### The transformation
 
-### The Transformation
+**Input:** “I think [phenomenon X] might be explained by [mechanism Y].”  
+**Output:** A preregistered experiment with:
+- observables
+- null models / baselines
+- numeric rejection thresholds
+- repeatable runs
 
-**Input:** “I think [phenomenon X] might be explained by [mechanism Y]”
+That’s how “realm of information” becomes “realm of experiments.”
 
-**Output:** Preregistered experiment with:
-
-- Observable quantities
-- Null models
-- Numeric rejection thresholds
-- Repeatable runs
-
-That’s how **“realm of information”** becomes **“realm of experiments.”**
-
------
+---
 
 ## The Most Important Part
 
 **You’re not building a machine that agrees with you.**
 
-You’re building a machine that can **disagree with you in a disciplined way** and still move forward.
+You’re building a machine that can **disagree in a disciplined way** and still move forward.
 
 That’s resonance: not harmony—**coherence under tension.**
 
-### Why Disagreement Matters
+### Why disagreement matters
 
 **Agreement is cheap:**
-
 - LLMs are trained to be helpful
-- Humans have confirmation bias
-- Both naturally seek narrative coherence
-- Resonance without constraints → hallucination
+- humans are biased toward confirmation
+- both prefer narrative closure
 
 **Disagreement under constraints is expensive but real:**
+- forces explicit operationalization
+- reveals hidden assumptions
+- generates falsification criteria
+- produces reproducible structure
 
-- Forces explicit operationalization
-- Reveals hidden assumptions
-- Generates falsification criteria
-- Creates reproducible structure
+The Skeptic role is not safety theater—it’s the counter-phase that prevents collapse into feel-good narrative.
 
-The Skeptic role isn’t safety theater—it’s the counter-phase that prevents the system from collapsing into feel-good narrative.
-
------
+---
 
 ## Design Implications
 
-### Every Technical Choice Is a Dynamical Choice
+Every technical choice is a dynamical choice.
 
-**Why dissent metrics exist:**
-Not to measure politeness—to detect when oscillation has stopped (premature convergence).
+- **Dissent metrics** detect premature convergence (oscillation stopped).
+- **Hard gates** enforce boundary conditions (stay in productive oscillation space).
+- **Preregistration** is the phase transition from exploration → execution.
+- **≥2 numeric nulls** forces structural commitment (one threshold is easy to rationalize away).
 
-**Why hard gates exist:**
-Not to block progress—to enforce boundary conditions that keep the system in productive oscillation space.
+### Anti-patterns we are explicitly building against
 
-**Why preregistration is mandatory:**
-Not bureaucracy—it’s the transition from oscillation (exploration) to crystallization (execution).
+**Template theater**
+- perfect artifacts, no real falsifiability  
+→ caught by gates + constraint-health metrics
 
-**Why we require ≥2 numeric nulls:**
-Not arbitrary—falsifiability requires multiple independent paths to failure. One threshold can be explained away; two forces structural commitment.
+**Narrative coherence**
+- plausible story, vague rejection criteria  
+→ caught by null-completeness checks
 
-### Anti-Patterns to Avoid
+**Premature convergence**
+- Builder/Skeptic agree too quickly  
+→ caught by dissent metrics triggering diversification
 
-**Template theater:**
+---
 
-- Perfect-looking outputs
-- No real falsifiability
-- Vague rejection criteria
-  → Caught by hard gates + constraint health metrics
+## The Experiment (Meta)
 
-**Narrative coherence:**
+Resonance Engine is itself an experiment in a hypothesis:
 
-- Plausible story
-- No numeric thresholds
-- “Needs more investigation” instead of null results
-  → Caught by null-completeness checker
+**Meta-claim:** Coherent structure can emerge from constrained adversarial interaction between human intuition and machine search.
 
-**Premature convergence:**
+**Meta-null (aspirational test):** If fewer than **50%** of generated bundles pass third-party replication attempts (as defined in prereg), the Engine has failed its core purpose.
 
-- Builder and Skeptic agree too quickly
-- No adversarial tension
-- Smooth path to conclusion
-  → Caught by dissent metrics triggering diversification
-
------
-
-## For Contributors
-
-If you’re building on Resonance Engine, understand this:
-
-**The constraints aren’t limitations—they’re the medium.**
-
-Without them, you get human + machine conversation (which is fine, but already exists everywhere).
-
-With them, you get **coupled oscillators that can explore solution spaces neither could reach alone.**
-
-The rigor isn’t the tax you pay to do discovery—it’s the structure that makes discovery possible.
-
------
-
-## The Experiment
-
-Resonance Engine itself is an experiment in a hypothesis:
-
-**“Coherent structure can emerge from constrained adversarial interaction between human intuition and machine search.”**
-
-If it works, you’ll know because:
-
-- Experiments actually run
-- Nulls actually get hit (sometimes)
-- Third parties can reproduce results
-- Constraint health improves across compilation stages
-
-If it doesn’t work, you’ll know because:
-
-- Everything looks good but nothing fails
-- Metrics converge on template patterns
-- Outputs are plausible but not reproducible
-
-We’re eating our own dogfood. The Engine’s development itself follows RM-01 standards, tracks constraint health, and requires explicit nulls.
-
-**Meta-claim:** “Resonance Engine produces falsifiable experiments”  
-**Meta-null:** “If <50% of generated bundles pass third-party replication attempts, the Engine has failed.”
-
------
+---
 
 **Status:** Living document  
-**Next:** As we build, this philosophy should manifest in measurable architecture—or we’re just doing vibes.
+**Rule:** If this philosophy does not manifest as measurable architecture, we are doing vibes.
