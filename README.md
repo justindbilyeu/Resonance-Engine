@@ -12,7 +12,7 @@ A human-AI interface that transforms intuitive questions into preregistered, fal
 
 Traditional prompt engineering optimizes for *plausible output*. Resonance Engine optimizes for *falsifiable experiments* through:
 
-- **Hard Gates:** Automated null-completeness checker rejects any preregistration with <2 specific numeric thresholds that would invalidate the hypothesis
+- **Hard Gates:** Automated null-completeness gate (`assert_numeric_nulls`) rejects any preregistration with <2 specific numeric thresholds that would invalidate the hypothesis (see [docs/METRICS.md](docs/METRICS.md))
 - **Dissent Metrics:** Builder/Skeptic disagreement must remain above baseline—if they agree too quickly, controller mandates architectural diversity
 - **Constraint Health Tracking:** Falsifiability, operational clarity, and null completeness must improve stage-to-stage or pipeline restarts
 - **Preregistration Standard:** All experiments conform to [RM-01](https://github.com/justindbilyeu/Resonance-Method) protocol—locked parameters, stopping rules, acceptance/failure criteria before execution
