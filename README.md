@@ -138,7 +138,7 @@ Resonance-Engine/
 │   └── COHERENCE_METRICS.template.yaml
 │
 ├── examples/
-│   └── golden_path_hallucination/  # Demonstration: hallucination-as-phase-transition
+│   └── golden_path_toy/            # Locked public demo: coin flip fairness test
 │       ├── seed_idea.md
 │       ├── [full bundle outputs]
 │       └── RESULTS.md              # Outcomes + constraint health retrospective
@@ -205,5 +205,5 @@ If you use Resonance Engine in research:
 
 -----
 
-**Status:** v0 (metrics + gates + minimal runnable cycle)  
-**Next:** Golden path example (hallucination curvature spike), plugin architecture for theory-specific validators
+**Status:** v1 (locked golden path demo + Apache 2.0 license alignment)
+**Next:** Control mode experiments (compute vs geometry), justasking diversity fan-out, RG-AISysTheory dogfooding
