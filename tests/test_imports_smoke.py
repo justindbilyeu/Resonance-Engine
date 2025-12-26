@@ -53,13 +53,8 @@ def test_metrics_package_imports():
 
 def test_stubs_raise_not_implemented():
     """Test that stub implementations raise NotImplementedError as expected."""
-    from core.discovery_compiler import compile
     from core.roles.builder import Builder
     from core.metrics.constraint_health import measure_falsifiability
-
-    # Discovery compiler stub
-    with pytest.raises(NotImplementedError):
-        compile("test seed", "test_output")
 
     # Role stub
     with pytest.raises(NotImplementedError):

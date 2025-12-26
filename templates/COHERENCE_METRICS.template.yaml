@@ -1,0 +1,77 @@
+# Coherence Metrics
+# Tracks constraint health and controller decisions during bundle generation
+
+seed_idea: "{seed}"
+
+# Bundle Generation Metadata
+generation:
+  timestamp: "YYYY-MM-DD HH:MM:SS"
+  engine_version: "0.0.1"
+  generator: "discovery_compiler.compile()"
+
+# Constraint Health (populated during compilation)
+constraint_health:
+  null_completeness:
+    status: "pass"  # pass/fail
+    numeric_thresholds_found: 4
+    minimum_required: 2
+    gate: "assert_numeric_nulls"
+
+  falsifiability:
+    status: "placeholder"  # To be implemented in future PR
+    score: null
+    notes: "Falsifiability scoring not yet implemented (see docs/METRICS.md)"
+
+  operational_clarity:
+    status: "placeholder"  # To be implemented in future PR
+    score: null
+    notes: "Operational clarity scoring not yet implemented (see docs/METRICS.md)"
+
+# Compilation Stages (for future multi-stage compilation)
+stages:
+  - stage: "template_generation"
+    timestamp: "YYYY-MM-DD HH:MM:SS"
+    status: "completed"
+    notes: "Generated bundle from templates"
+
+  # Future stages (post-v0):
+  # - stage: "builder_generation"
+  #   role: "Builder"
+  #   timestamp: "..."
+  #   constraint_health: {...}
+  #
+  # - stage: "skeptic_critique"
+  #   role: "Skeptic"
+  #   timestamp: "..."
+  #   dissent_score: 0.XX
+  #   constraint_health: {...}
+  #
+  # - stage: "auditor_validation"
+  #   role: "Auditor"
+  #   timestamp: "..."
+  #   issues_found: []
+  #   constraint_health: {...}
+
+# Controller Decisions (for future multi-stage compilation)
+controller_decisions:
+  - decision: "accept_bundle"
+    reason: "Null completeness gate passed"
+    timestamp: "YYYY-MM-DD HH:MM:SS"
+
+  # Future decisions (post-v0):
+  # - decision: "diversify" | "converge" | "restart"
+  #   reason: "..."
+  #   stage: "..."
+  #   metrics: {...}
+
+# Notes
+notes: |
+  This file tracks the health of constraints and controller decisions during
+  bundle generation. In v0, only the null_completeness gate is enforced.
+
+  Future versions will track:
+  - Builder/Skeptic dissent metrics
+  - Stage-to-stage constraint health improvement
+  - Controller decisions to diversify/converge/restart
+
+  See docs/ARCHITECTURE.md and docs/METRICS.md for details.

@@ -1,0 +1,99 @@
+# Preregistration
+# All parameters locked before execution. Changes to this file after initial
+# preregistration must be documented with justification.
+
+seed_idea: "{seed}"
+
+# Locked Parameters
+parameters:
+  # Random seeds (all must be specified for reproducibility)
+  random_seed: 42
+  data_split_seed: 123
+  model_init_seed: 456
+
+  # Model configuration
+  model:
+    architecture: "placeholder"  # e.g., "transformer", "lstm", "mlp"
+    hidden_size: 128
+    num_layers: 2
+    # Add architecture-specific parameters
+
+  # Training configuration
+  training:
+    epochs: 10
+    batch_size: 32
+    learning_rate: 0.001
+    optimizer: "adam"
+    # Add training-specific parameters
+
+  # Data configuration
+  data:
+    dataset: "placeholder"
+    train_samples: 1000
+    test_samples: 200
+    # Add data-specific parameters
+
+# Stopping Rules
+stopping_rules:
+  # Define when to stop the experiment (before analyzing results)
+  - condition: "training_epochs_completed"
+    value: 10
+  - condition: "max_wall_time_hours"
+    value: 24
+  # Add domain-specific stopping rules
+
+# Acceptance/Failure Criteria
+# These must align with NULLS.md numeric thresholds
+acceptance_criteria:
+  primary:
+    - metric: "placeholder_accuracy"
+      operator: ">="
+      threshold: 0.60
+      description: "Primary success criterion"
+
+  secondary:
+    - metric: "placeholder_improvement"
+      operator: ">"
+      threshold: 0.05
+      description: "Improvement over baseline"
+
+failure_criteria:
+  # Must match numeric thresholds in NULLS.md
+  - metric: "placeholder_accuracy"
+    operator: "<"
+    threshold: 0.55
+    description: "Below random chance (from NULLS.md)"
+
+  - metric: "placeholder_improvement"
+    operator: "<="
+    threshold: 0.05
+    description: "No meaningful improvement (from NULLS.md)"
+
+# Decision Rules
+decision:
+  # How to interpret results
+  primary_success_condition: "ALL acceptance_criteria.primary met"
+  secondary_success_condition: "ALL acceptance_criteria.secondary met"
+  failure_condition: "ANY failure_criteria met"
+
+  # What to do in edge cases
+  tie_breaking: "Failure takes precedence (conservative interpretation)"
+
+# Preregistration Metadata
+preregistration:
+  version: "1.0"
+  locked_date: "YYYY-MM-DD"  # Set when preregistration is finalized
+  locked_by: "researcher_name"
+
+  modifications:
+    # Log any post-hoc changes (should be rare and justified)
+    # - date: "YYYY-MM-DD"
+    #   change: "Description of what changed"
+    #   justification: "Why the change was necessary"
+
+# Constraint Checklist
+# - [ ] All random seeds specified
+# - [ ] Stopping rules defined (no peeking at results mid-experiment)
+# - [ ] Acceptance/failure criteria match NULLS.md numeric thresholds
+# - [ ] Decision rules are unambiguous
+# - [ ] No parameters left as "TBD" or "to be determined"
