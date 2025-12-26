@@ -188,7 +188,7 @@ We value experiments that *fail cleanly* over those that “mostly work.”
 
 ## License
 
-MIT
+Apache 2.0
 
 ## Citation
 
