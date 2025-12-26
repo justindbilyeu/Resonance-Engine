@@ -1,8 +1,8 @@
 # Integration Strategy
 
-**Status:** v0 (adapters + links only; no upstream imports)
+**Status:** v1 (justasking thin slice implemented; ITPU/GP still adapters only)
 
-Resonance Engine is designed to integrate with a broader stack of tools for diversity actuation, metrics computation, and diagnostic analysis. This document describes the integration architecture and v0 policy.
+Resonance Engine is designed to integrate with a broader stack of tools for diversity actuation, metrics computation, and diagnostic analysis. This document describes the integration architecture and implementation status.
 
 ---
 
@@ -57,12 +57,31 @@ if dissent_score < 0.3:
     variations = fanout(
         prompt_bundle={"hypothesis": current_claim, "context": operationalize_doc},
         models=["gpt-4", "claude-3", "llama-70b"],
-        n_variations=5
+        n_variations=5,
+        simulate=True  # v1: simulated diversity for demo
     )
     # Feed variations to Skeptic for adversarial critique
+
+# With diversity metrics
+responses, metrics = fanout_with_diversity_metrics(
+    prompt_bundle={"hypothesis": claim},
+    target_diversity=0.7
+)
+print(f"Diversity achieved: {metrics['diversity_achieved']}")
 ```
 
-**Status:** Adapter stub only (NotImplementedError)
+**Status:** ✅ v1 thin slice implemented
+- `fanout()`: Simulated fan-out with synthetic diverse responses
+- `compute_diversity_score()`: Measures model/text/temperature diversity
+- `fanout_with_diversity_metrics()`: Iterative fan-out until target diversity reached
+- DISSENT.md template for documenting disagreement maps
+- 23 comprehensive tests validating structure
+
+**v1 Implementation:**
+- Simulated responses demonstrate structure without requiring LLM API calls
+- Deterministic output for reproducibility
+- Ready to swap with real justasking calls when available
+- Feature flag: `simulate=True` (default) vs `simulate=False` (raises NotImplementedError)
 
 ---
 

@@ -54,24 +54,35 @@ class TestJustaskingAdapter:
         assert "temperature_range" in params
         assert "n_variations" in params
 
-    def test_fanout_raises_not_implemented(self):
-        """Test that fanout stub raises NotImplementedError."""
+    def test_fanout_works_in_simulated_mode(self):
+        """Test that fanout works in simulated mode (v1 thin slice)."""
         from core.integrations.justasking_adapter import fanout
 
-        with pytest.raises(NotImplementedError, match="justasking"):
-            fanout(prompt_bundle={"hypothesis": "test"})
+        # Should work with simulate=True (default)
+        result = fanout(prompt_bundle={"hypothesis": "test"}, n_variations=2)
+        assert isinstance(result, list)
+        assert len(result) == 2
+
+        # Should raise with simulate=False (not yet wired)
+        with pytest.raises(NotImplementedError, match="Real LLM fan-out not yet wired"):
+            fanout(prompt_bundle={"hypothesis": "test"}, simulate=False)
 
     def test_fanout_with_diversity_metrics_exists(self):
         """Test that fanout_with_diversity_metrics function exists."""
         from core.integrations.justasking_adapter import fanout_with_diversity_metrics
         assert callable(fanout_with_diversity_metrics)
 
-    def test_fanout_with_diversity_metrics_raises_not_implemented(self):
-        """Test that fanout_with_diversity_metrics stub raises NotImplementedError."""
+    def test_fanout_with_diversity_metrics_works_in_simulated_mode(self):
+        """Test that fanout_with_diversity_metrics works (v1 thin slice)."""
         from core.integrations.justasking_adapter import fanout_with_diversity_metrics
 
-        with pytest.raises(NotImplementedError):
-            fanout_with_diversity_metrics(prompt_bundle={"hypothesis": "test"})
+        # Should work with simulate=True (default)
+        responses, metrics = fanout_with_diversity_metrics(
+            prompt_bundle={"hypothesis": "test"}
+        )
+        assert isinstance(responses, list)
+        assert isinstance(metrics, dict)
+        assert "diversity_achieved" in metrics
 
 
 class TestITPUAdapter:
