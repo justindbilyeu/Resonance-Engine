@@ -1,0 +1,95 @@
+# Preregistration: Coin Flip Fairness Test
+# All parameters locked before execution
+
+seed_idea: "Does a simulated coin flip produce heads and tails with approximately equal probability over many trials?"
+
+# Locked Parameters
+parameters:
+  # Random seeds (all must be specified for reproducibility)
+  random_seed: 42
+
+  # Experiment configuration
+  experiment:
+    n_trials: 1000
+    coin_probability: 0.5  # Fair coin
+    flip_implementation: "numpy.random.binomial"
+
+  # Analysis configuration
+  analysis:
+    confidence_level: 0.95
+    expected_proportion: 0.5
+    ci_lower: 0.45  # 95% CI lower bound
+    ci_upper: 0.55  # 95% CI upper bound
+
+# Stopping Rules
+stopping_rules:
+  - condition: "n_trials_completed"
+    value: 1000
+    description: "Stop after exactly 1000 flips"
+
+# Acceptance/Failure Criteria
+# These must align with NULLS.md numeric thresholds
+acceptance_criteria:
+  primary:
+    - metric: "proportion_heads"
+      operator: ">="
+      threshold: 0.45
+      description: "Within 95% CI lower bound"
+    - metric: "proportion_heads"
+      operator: "<="
+      threshold: 0.55
+      description: "Within 95% CI upper bound"
+
+failure_criteria:
+  # Must match numeric thresholds in NULLS.md
+  - metric: "proportion_heads"
+    operator: "<"
+    threshold: 0.45
+    description: "Below 95% CI lower bound (from NULLS.md)"
+
+  - metric: "proportion_heads"
+    operator: ">"
+    threshold: 0.55
+    description: "Above 95% CI upper bound (from NULLS.md)"
+
+  - metric: "proportion_heads"
+    operator: "<"
+    threshold: 0.40
+    description: "Extreme lower bias (from NULLS.md)"
+
+  - metric: "proportion_heads"
+    operator: ">"
+    threshold: 0.60
+    description: "Extreme upper bias (from NULLS.md)"
+
+# Decision Rules
+decision:
+  primary_success_condition: "ALL acceptance_criteria.primary met"
+  failure_condition: "ANY failure_criteria met"
+  tie_breaking: "Failure takes precedence (conservative interpretation)"
+
+# Preregistration Metadata
+preregistration:
+  version: "1.0"
+  locked_date: "2025-01-01"
+  locked_by: "Resonance Engine v0 (example)"
+  modifications: []
+
+# Expected Outcome
+expected_outcome:
+  description: "For a fair coin (p=0.5) with seed=42, we expect proportion ≈ 0.50"
+  point_estimate: 0.50
+  confidence_interval: [0.45, 0.55]
+  will_pass: true  # We expect this to pass with seed=42
+
+# Notes
+notes: |
+  This is a toy example demonstrating the Resonance Engine golden path.
+  The experiment is simple enough to understand immediately but demonstrates
+  all key components:
+  - Locked parameters (random seed, n_trials)
+  - Numeric acceptance/failure criteria (≥2 thresholds)
+  - Reproducible execution
+  - Clear pass/fail decision logic
+
+  Real experiments would be more complex, but would follow the same structure.

@@ -59,6 +59,38 @@ cat COHERENCE_METRICS.yaml
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design
 - [docs/METRICS.md](docs/METRICS.md) - Null completeness gate and metrics
 
+## Example: Golden Path Toy
+
+**See:** [examples/golden_path_toy/](examples/golden_path_toy/) for a complete, working example.
+
+This toy example demonstrates the full Resonance Engine workflow with a simple coin flip fairness test:
+
+```bash
+cd examples/golden_path_toy
+
+# Run the experiment
+python src/experiment.py
+
+# Run tests
+python -m pytest tests/ -v
+```
+
+**What it demonstrates:**
+- ✓ Complete bundle structure (CLAIM, OPERATIONALIZE, PREREG, NULLS, COHERENCE_METRICS)
+- ✓ Null completeness gate passes (4 numeric thresholds: < 0.45, > 0.55, < 0.40, > 0.60)
+- ✓ Runnable experiment with deterministic results (seed=42)
+- ✓ Tests validate null hypothesis thresholds can be evaluated
+- ✓ Third-party reproducibility from bundle alone
+
+**Key files:**
+- `seed_idea.md` - Original research question
+- `NULLS.md` - 4 numeric rejection thresholds (passes gate)
+- `src/experiment.py` - Working implementation
+- `tests/test_experiment.py` - Validates thresholds are evaluable
+- `RESULTS.md` - Template for documenting outcomes
+
+The example is intentionally simple (coin flips) to make the structure transparent. Real experiments would be more complex but follow the same pattern.
+
 ## Bundle Outputs
 
 Each compilation cycle produces:

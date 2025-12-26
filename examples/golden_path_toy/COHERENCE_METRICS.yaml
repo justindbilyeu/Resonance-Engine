@@ -1,0 +1,96 @@
+# Coherence Metrics: Coin Flip Fairness Test
+# Tracks constraint health for this example bundle
+
+seed_idea: "Does a simulated coin flip produce heads and tails with approximately equal probability over many trials?"
+
+# Bundle Generation Metadata
+generation:
+  timestamp: "2025-01-01 00:00:00"
+  engine_version: "0.0.1"
+  generator: "manual (golden path example)"
+  method: "hand-crafted for demonstration"
+
+# Constraint Health
+constraint_health:
+  null_completeness:
+    status: "pass"
+    numeric_thresholds_found: 4
+    minimum_required: 2
+    gate: "assert_numeric_nulls"
+    thresholds:
+      - "< 0.45"
+      - "> 0.55"
+      - "< 0.40"
+      - "> 0.60"
+
+  falsifiability:
+    status: "pass"
+    assessment: "Claim can fail in multiple measurable ways"
+    failure_modes:
+      - "Proportion too low (< 0.45)"
+      - "Proportion too high (> 0.55)"
+      - "Extreme bias detected"
+
+  operational_clarity:
+    status: "pass"
+    assessment: "Third-party reproduction possible from artifacts alone"
+    evidence:
+      - "Random seed specified (42)"
+      - "N trials specified (1000)"
+      - "Measurement procedure explicit"
+      - "Dependencies minimal (numpy)"
+
+  reproducibility:
+    status: "pass"
+    assessment: "Fully deterministic with locked parameters"
+    locked_parameters:
+      - "random_seed: 42"
+      - "n_trials: 1000"
+      - "coin_probability: 0.5"
+
+# Compilation Stages
+stages:
+  - stage: "manual_creation"
+    timestamp: "2025-01-01 00:00:00"
+    status: "completed"
+    notes: "Hand-crafted golden path example demonstrating full bundle structure"
+
+# Controller Decisions
+controller_decisions:
+  - decision: "accept_bundle"
+    reason: "All constraint health checks pass. Null completeness gate satisfied (4 thresholds). Example is simple, reproducible, and falsifiable."
+    timestamp: "2025-01-01 00:00:00"
+
+# Quality Metrics
+quality:
+  simplicity: "high"
+  reproducibility: "perfect (deterministic)"
+  falsifiability: "clear (4 numeric thresholds)"
+  educational_value: "high (demonstrates golden path)"
+
+# Notes
+notes: |
+  This is a manually created golden path example for Resonance Engine v0.
+
+  Purpose:
+  - Demonstrate complete bundle structure
+  - Show how null completeness gate works
+  - Provide template for real experiments
+  - Validate that experiments can actually run
+
+  This example intentionally uses the simplest possible experiment (coin flips)
+  to make the structure clear. Real experiments would be more complex but
+  follow the same pattern.
+
+  Key Demonstration Points:
+  1. ✓ Null completeness gate passes (4 thresholds)
+  2. ✓ Experiment is runnable (src/experiment.py)
+  3. ✓ Tests validate null thresholds (tests/test_experiment.py)
+  4. ✓ Results can be evaluated against preregistered criteria
+  5. ✓ Third-party reproduction possible
+
+  Future examples (post-v0) will demonstrate:
+  - Multi-stage compilation (Builder → Skeptic → Auditor)
+  - Constraint health improvement tracking
+  - Dissent metrics and diversification
+  - Real-world applications (LLM behavior, phase transitions, etc.)
