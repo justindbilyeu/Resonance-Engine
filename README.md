@@ -22,25 +22,26 @@ The system succeeds when experiments *can fail*—and fail in ways we preregiste
 
 ## Quickstart
 
+**Status (v0 scaffold):** Core package structure and tests are in place. Bundle generation and full compilation cycle coming in PR-2.
+
 ```bash
 # Clone
 git clone https://github.com/justindbilyeu/Resonance-Engine.git
 cd Resonance-Engine
 
 # Install
-pip install -r requirements.txt
+pip install -e .
 
-# Run tests (validates gate logic + metric computation)
-pytest tests/
+# Run tests (validates package structure)
+python -m pytest -q
 
-# Generate experiment bundle from seed idea
-python -m core.discovery_compiler \
-  --seed "Your research question here" \
-  --output experiments/example_001/
-  
-# Inspect constraint health progression
-cat experiments/example_001/COHERENCE_METRICS.yaml
+# Coming in PR-2: Bundle generator CLI
+# python -m core.discovery_compiler --seed "..." --output experiments/example_001/
 ```
+
+For now, explore the architecture and philosophy:
+- [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md) - Coherence under tension
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design
 
 ## Bundle Outputs
 
