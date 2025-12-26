@@ -1,7 +1,7 @@
 # Resonance Engine
 
 A human-AI interface that transforms intuitive questions into preregistered, falsifiable experiments. The system enforces geometric convergence on testable truth through explicit metrics, dissent tracking, and automated falsifiability gates.
-
+> Start here: **[docs/PHILOSOPHY.md](docs/PHILOSOPHY.md)** — “Coherence Under Tension” (why constraints are the medium, and how the Engine avoids narrative drift).
 ## What This Is
 
 **Discovery Compiler:** Orchestrates multi-AI roles (Builder/Skeptic/Auditor/Operator) to progressively constrain a research question from high-dimensional intuition into a runnable experiment with explicit failure criteria.
