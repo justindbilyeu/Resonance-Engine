@@ -129,6 +129,20 @@ Resonance Engine operationalizes concepts from:
 
 The architecture assumes *ideas have geometry* and that convergence on testable truth is a measurable geometric process, not a subjective narrative.
 
+## Integration Posture
+
+**v0 Policy: Adapters + Links, Not Imports**
+
+Resonance Engine integrates with a broader stack for diversity actuation, metrics computation, and diagnostic analysis:
+
+- **[justasking](https://github.com/justindbilyeu/justasking):** Diversity fan-out across models (prevents premature convergence)
+- **[ITPU](https://github.com/justindbilyeu/ITPU):** Information-theoretic metrics (MI, transfer entropy)
+- **[Geometric-Plasticity](https://github.com/justindbilyeu/Resonance_Geometry):** Ringing detection, curvature analysis
+
+**Current status:** Clean adapter interfaces defined (`core/integrations/`), no upstream code imported. This decouples development cycles and forces interface clarity. Real implementations will be wired post-v0 behind feature flags.
+
+**See:** [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for integration strategy and roadmap.
+
 ## Contributing
 
 Before submitting PRs:
