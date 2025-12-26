@@ -1,0 +1,5 @@
+# Resonance Engine - Core Dependencies
+# Python 3.10+
+
+# Testing
+pytest>=7.4.0

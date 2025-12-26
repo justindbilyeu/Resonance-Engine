@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resonance-engine"
+version = "0.0.1"
+description = "Discovery Compiler + Coherence Controller for falsifiable experiments"
+authors = [{name = "Justin D. Bilyeu"}]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pytest>=7.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/justindbilyeu/Resonance-Engine"
+Repository = "https://github.com/justindbilyeu/Resonance-Engine"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*"]
