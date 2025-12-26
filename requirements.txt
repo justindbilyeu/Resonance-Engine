@@ -1,5 +1,8 @@
 # Resonance Engine - Core Dependencies
 # Python 3.10+
 
+# Core
+pyyaml>=6.0
+
 # Testing
 pytest>=7.4.0

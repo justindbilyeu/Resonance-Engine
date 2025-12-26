@@ -22,8 +22,6 @@ The system succeeds when experiments *can fail*—and fail in ways we preregiste
 
 ## Quickstart
 
-**Status (v0 scaffold):** Core package structure and tests are in place. Bundle generation and full compilation cycle coming in PR-2.
-
 ```bash
 # Clone
 git clone https://github.com/justindbilyeu/Resonance-Engine.git
@@ -32,16 +30,34 @@ cd Resonance-Engine
 # Install
 pip install -e .
 
-# Run tests (validates package structure)
+# Run tests (validates gates + metric computation)
 python -m pytest -q
 
-# Coming in PR-2: Bundle generator CLI
-# python -m core.discovery_compiler --seed "..." --output experiments/example_001/
+# Generate experiment bundle from seed idea
+python -m core.discovery_compiler \
+  --seed "Your research question here" \
+  --output experiments/example_001
+
+# Inspect generated bundle
+cd experiments/example_001/
+ls  # CLAIM.md, NULLS.md, PREREG.yaml, src/, tests/, etc.
+
+# Review constraint health
+cat COHERENCE_METRICS.yaml
 ```
 
-For now, explore the architecture and philosophy:
-- [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md) - Coherence under tension
+**What just happened:**
+1. Bundle generator created experiment skeleton from templates
+2. Null completeness gate verified NULLS.md has ≥2 numeric thresholds
+3. Constraint health metrics recorded in COHERENCE_METRICS.yaml
+4. Ready-to-customize experiment structure generated
+
+**Next:** Customize templates, implement experiment logic, run and document results.
+
+**Learn more:**
+- [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md) - Why constraints are the medium
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - System design
+- [docs/METRICS.md](docs/METRICS.md) - Null completeness gate and metrics
 
 ## Bundle Outputs
 
