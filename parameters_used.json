@@ -1,0 +1,5 @@
+{
+  "bundle_id": "0001_rfo_ringing_wedge",
+  "version": "1.0",
+  "note": "Populated at run-time by the experiment runner with resolved parameters actually used."
+}

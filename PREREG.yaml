@@ -1,0 +1,124 @@
+bundle_id: 0001_rfo_ringing_wedge
+version: "1.0"
+date_preregistered: "2025-12-27"
+timezone: "America/Chicago"
+
+intent:
+  statement: >
+    Test whether an RFO network with bounded plastic coupling exhibits a
+    wedge-shaped region of sustained resonance ("ringing") in (K, gamma) space
+    under constant drive, using preregistered numeric ringing criteria.
+
+model:
+  name: "RFO_Kuramoto_plastic"
+  dynamics:
+    integrator: "euler"
+    dt: 0.01
+    steps_total: 200000
+    steps_burnin: 50000
+    steps_measure: 150000
+  network:
+    N: 128
+    init_theta: "uniform_0_2pi"
+    omega_dist: "normal"
+    omega_params:
+      mean: 1.0
+      std: 0.05
+  drive:
+    D: 0.20
+    Omega: 1.0
+  noise:
+    type: "gaussian_phase"
+    sigma_rule: "sigma = gamma * sqrt(dt)"
+  plasticity:
+    enabled: true
+    alpha: 0.20
+    beta: 0.10
+    W_max: 1.00
+    W_init: "constant"
+    W_init_value: 0.20
+    clip: [0.0, 1.0]
+
+sweep:
+  grid:
+    K:
+      min: 0.0
+      max: 8.0
+      num: 81
+    gamma:
+      min: 0.0
+      max: 0.60
+      num: 61
+  replicates_per_point: 3
+  seeds:
+    base_seed: 4200001
+    seed_rule: "seed = base_seed + hash(K, gamma, rep_index) mod 10^9"
+
+observables:
+  primary:
+    - name: "r(t)"
+      definition: "Kuramoto order parameter magnitude"
+    - name: "PSD_r"
+      definition: "Welch PSD of r(t)"
+  secondary:
+    - name: "R(t)"
+      definition: "std(W)/mean(W) redundancy proxy"
+    - name: "Z_R(t)"
+      definition: "robust z-score of R(t) using median and MAD"
+
+diagnostics:
+  ringing_label:
+    required_all:
+      - metric: "Delta_PSD_dB"
+        method: "10*log10(P_peak/P_median)"
+      - metric: "N_over"
+        method: "count upward crossings of Z_R above +1.0"
+      - metric: "r_mean"
+        method: "mean r(t) over measurement window"
+  region_structure:
+    connectivity: "4-neighbor"
+    wedge_secondary_check:
+      min_consecutive_K: 5
+      monotone_span_gamma_min: 0.10
+
+analysis_plan:
+  summary_per_point:
+    - "compute r(t), PSD, Delta_PSD_dB"
+    - "compute R(t), Z_R(t), N_over"
+    - "ring_label = all prereg thresholds satisfied"
+    - "aggregate across replicates via majority vote"
+  sweep_level:
+    - "build binary grid of ring_label"
+    - "extract connected components"
+    - "compute wedge boundary curves K_low(gamma), K_high(gamma)"
+    - "produce wedge_report.md with plots and boundary extraction"
+
+stopping_rules:
+  - condition: "simulation runtime exceeds 8 hours on reference machine"
+    action: "reduce steps_measure to 100000 (ONLY if all grid points adjusted equally) and record deviation"
+  - condition: "numerical instability detected (NaN in theta or W)"
+    action: "mark point invalid; do not resample; count toward failure if invalid_rate > 1%"
+
+multiple_comparisons:
+  statement: >
+    The claim is evaluated via preregistered numeric thresholds on labeled points
+    and region-level existence criteria (see NULLS.md). No post-hoc threshold tuning allowed.
+
+reporting:
+  required_outputs:
+    - "grid.csv"
+    - "wedge_report.md"
+    - "parameters_used.json"
+    - "seed_manifest.json"
+  include_negative_controls: true
+  negative_controls:
+    - name: "plasticity_off"
+      change: "alpha=0.0 (W fixed)"
+      expectation: "ringing wedge either collapses or shifts; used as sanity check"
+
+deviations:
+  allowed:
+    - "hardware limits may require reducing steps_total, but must reduce uniformly and record"
+  forbidden:
+    - "changing thresholds in NULLS.md"
+    - "changing sweep ranges after results inspection"

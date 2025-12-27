@@ -1,0 +1,18 @@
+{
+  "bundle_id": "0001_rfo_ringing_wedge",
+  "path": "bundles/0001_rfo_ringing_wedge",
+  "files": [
+    "CLAIM.md",
+    "COHERENCE_METRICS.yaml",
+    "NULLS.md",
+    "OPERATIONALIZE.md",
+    "PREREG.yaml",
+    "README.md",
+    "constraint_health_history.csv",
+    "decision_trace.md",
+    "dissent_history.csv",
+    "hard_gate_results.json",
+    "parameters_used.json",
+    "seed_manifest.json"
+  ]
+}

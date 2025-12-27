@@ -1,0 +1,190 @@
+# COHERENCE_METRICS.yaml
+# Bundle: 0001_rfo_ringing_wedge
+# Purpose: Define the constraint-health signals that Resonance Engine tracks during compilation,
+#          and the controller policy that decides CONVERGE vs DIVERSIFY vs RESTART.
+
+bundle_id: 0001_rfo_ringing_wedge
+version: "1.0"
+date: "2025-12-27"
+timezone: "America/Chicago"
+
+compiler_roles:
+  builder:
+    mission: "Produce a testable RFO ringing-wedge hypothesis with complete operationalization and prereg."
+  skeptic:
+    mission: "Maximize failure-mode coverage: demand numeric nulls, negative controls, and ambiguous-term elimination."
+  auditor:
+    mission: "Validate constraints: file completeness, locked parameters, units/definitions, no post-hoc degrees of freedom."
+  operator:
+    mission: "Ensure runnability: deterministic seeds, bounded runtime, artifact outputs, test harness viability."
+
+artifacts_required:
+  hard_required:
+    - CLAIM.md
+    - OPERATIONALIZE.md
+    - PREREG.yaml
+    - NULLS.md
+  recommended:
+    - COHERENCE_METRICS.yaml
+    - parameters_used.json
+    - seed_manifest.json
+
+hard_gates:
+  - id: HG1_null_numeric_thresholds
+    description: "NULLS.md must contain >=2 numeric rejection thresholds."
+    method: "parse NULLS.md for numbers + comparators (>=, <=, >, <, =)."
+    min_count: 2
+    on_fail: "RESTART"
+
+  - id: HG2_claim_length
+    description: "CLAIM must be <= 3 sentences."
+    method: "sentence_count(CLAIM.md::Claim)"
+    max_sentences: 3
+    on_fail: "RESTART"
+
+  - id: HG3_prereg_locked_thresholds
+    description: "PREREG.yaml must forbid changing thresholds in NULLS.md."
+    method: "verify PREREG.yaml contains 'forbidden: changing thresholds in NULLS.md'"
+    required: true
+    on_fail: "RESTART"
+
+  - id: HG4_operational_definitions_present
+    description: "OPERATIONALIZE.md must define: model dynamics, observables, ringing criteria, data products."
+    method: "section_presence(OPERATIONALIZE.md, required_sections=[Model definition, Observables, Ringing diagnostics, Data products])"
+    required: true
+    on_fail: "RESTART"
+
+constraint_health:
+  definition: "Weighted sum of normalized submetrics with penalties for ambiguity and degrees of freedom."
+  score_range: [0.0, 1.0]
+
+  weights:
+    falsifiability: 0.30
+    operational_clarity: 0.25
+    prereg_rigidity: 0.20
+    implementation_readiness: 0.15
+    negative_control_strength: 0.10
+
+submetrics:
+  falsifiability:
+    components:
+      null_density:
+        target_count: 4
+        normalization: "min(count/target_count, 1.0)"
+        pass_floor: 0.50
+      null_binding:
+        method: "each threshold must reference a metric defined in OPERATIONALIZE.md."
+        scoring: "fraction_bound"
+        pass_floor: 0.80
+      degrees_of_freedom_penalty:
+        triggers:
+          - "vague terms without numbers: significant, robust, clear, strong"
+          - "unspecified PSD method or window length"
+          - "missing burn-in/measure windows"
+        penalty: 0.20
+    aggregation: "clamp( (null_density*0.40 + null_binding*0.60) - degrees_of_freedom_penalty, 0, 1 )"
+
+  operational_clarity:
+    components:
+      model_spec_complete:
+        required_items: ["state variables", "update equations", "noise model", "plasticity update and bounds"]
+        scoring: "fraction_present"
+        pass_floor: 0.90
+      observable_spec_complete:
+        required_items: ["r(t)", "Welch PSD", "Delta_PSD_dB formula", "R(t)", "Z_R(t)", "overshoot definition"]
+        scoring: "fraction_present"
+        pass_floor: 0.90
+      ambiguity_penalty:
+        triggers:
+          - "missing explicit thresholds for ringing_label"
+          - "multiple alternate definitions without selection"
+        penalty: 0.15
+    aggregation: "clamp( (model_spec_complete*0.50 + observable_spec_complete*0.50) - ambiguity_penalty, 0, 1 )"
+
+  prereg_rigidity:
+    components:
+      sweep_locked: { scoring: "binary" }
+      thresholds_locked: { scoring: "binary" }
+      stopping_rules_present: { scoring: "binary" }
+    aggregation: "(sweep_locked + thresholds_locked + stopping_rules_present) / 3.0"
+    pass_floor: 0.80
+
+  implementation_readiness:
+    components:
+      deterministic_seeds: { scoring: "binary" }
+      artifact_plan: { scoring: "binary" }
+      testability: { scoring: "binary" }
+    aggregation: "(deterministic_seeds + artifact_plan + testability) / 3.0"
+    pass_floor: 0.80
+
+  negative_control_strength:
+    components:
+      negative_control_defined: { scoring: "binary" }
+      contradiction_null_present: { scoring: "binary" }
+    aggregation: "(negative_control_defined + contradiction_null_present) / 2.0"
+    pass_floor: 1.00
+
+dissent_metrics:
+  definition: "Distance between Builder and Skeptic bundles across successive drafts."
+  proxies:
+    - name: "edit_distance_claim"
+    - name: "nulls_added_rate"
+    - name: "failure_mode_coverage"
+  dissent_floor:
+    early_stage: 0.30
+    late_stage: 0.10
+  premature_convergence_trigger:
+    condition:
+      stage: "early"
+      dissent_below: 0.10
+      constraint_health_below: 0.85
+    action: "DIVERSIFY"
+
+convergence_criteria:
+  target_constraint_health: 0.90
+  must_pass_submetric_floors: true
+  required_pass_floors:
+    falsifiability: 0.75
+    operational_clarity: 0.80
+    prereg_rigidity: 0.80
+    implementation_readiness: 0.80
+    negative_control_strength: 1.00
+  compile_complete_action: "CONVERGE"
+
+controller_policy:
+  stages:
+    - name: "stage_0_seed"
+      goal: "Ensure claim is bounded and falsifiable."
+      max_cycles: 2
+      if_fail: "RESTART"
+    - name: "stage_1_constraints"
+      goal: "Eliminate ambiguity, lock plan, add numeric nulls and controls."
+      max_cycles: 6
+      if_premature_convergence: "DIVERSIFY"
+      if_fail: "RESTART"
+    - name: "stage_2_audit"
+      goal: "Run hard-gate checks; ensure no hidden degrees of freedom."
+      max_cycles: 2
+      if_fail: "RESTART"
+
+  actions:
+    RESTART: { description: "Reject current draft; return to Builder with explicit defects list." }
+    DIVERSIFY: { description: "Inject architectural diversity: alternate Skeptic(s) propose additional nulls/failure modes." }
+    CONVERGE: { description: "Freeze bundle; emit runnable experiment scaffold + manifests." }
+
+compiler_log_requirements:
+  must_log:
+    - "hard_gate_results.json"
+    - "constraint_health_history.csv"
+    - "dissent_history.csv"
+    - "decision_trace.md"
+
+rg_specific_notes:
+  term_disambiguation:
+    ringing: "Defined by Delta_PSD_dB, N_over, and r_mean thresholds."
+    wedge: "Constrained by region size/connectivity and boundedness nulls."
+  forbidden_language_without_numbers:
+    - "significant"
+    - "robust"
+    - "clear resonance"
+    - "strong coherence"
