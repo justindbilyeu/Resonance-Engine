@@ -1,5 +1,3 @@
-Here’s a fresh, repo-ready README.md you can paste directly into justindbilyeu/Resonance-Engine:
-
 # Resonance Engine
 
 **Discovery compiler + coherence controller.**
