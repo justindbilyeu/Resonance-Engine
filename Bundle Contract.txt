@@ -1,0 +1,238 @@
+# RM-01: Bundle Contract & Root Cleanliness
+
+**Standard:** RM-01  
+**Domain:** Bundle Structure & Repository Organization  
+**Status:** Enforced (Gate G1)  
+**Enforcement:** Automated via `enforce_bundle_contract.py`
+
+-----
+
+## Purpose
+
+RM-01 enforces the **bundle contract** - the structural requirements that make a bundle valid, testable, and falsifiable.
+
+This standard prevents:
+
+- Scattered bundle artifacts making the repository unmaintainable
+- Bundles missing critical files (claims without nulls, experiments without code)
+- Ambiguous or unbounded claims
+- Missing numeric rejection thresholds
+
+-----
+
+## The Bundle Contract
+
+### Rule 1: Root Cleanliness
+
+**No bundle artifacts may appear in repository root.**
+
+Bundle artifacts include:
+
+- `CLAIM.md`, `NULLS.md`, `OPERATIONALIZE.md`, `PREREG.yaml`
+- `COHERENCE_METRICS.yaml`, `MANIFEST.json`, `DEVELOPER_NOTES.md`
+- Runtime outputs: `*.csv`, `*_results.json`, `*_history.csv`, etc.
+
+**Why:** A clean root keeps the repository navigable and prevents confusion about which artifacts belong to which bundle.
+
+**Enforcement:** Gate G1 scans root directory and fails if any forbidden files exist.
+
+-----
+
+### Rule 2: Required Bundle Files
+
+Every bundle in `bundles/*/` MUST contain:
+
+1. **CLAIM.md** - Falsifiable claim (≤3 sentences)
+- States what is being tested
+- Bounded in scope
+- Defines success/failure conditions
+1. **NULLS.md** - Numeric rejection thresholds (≥2)
+- At least 2 numeric thresholds that would reject the claim
+- No post-hoc tuning allowed
+- Thresholds must be locked before run
+1. **OPERATIONALIZE.md** - Observables and estimators
+- Maps every key term to a measurable quantity
+- Defines measurement windows
+- Specifies estimators/procedures
+1. **PREREG.yaml** - Locked parameters
+- Parameter sweep ranges
+- Seeds for determinism
+- Stopping rules
+- Forbidden deviations
+
+**Why:** These four files constitute the minimum for a falsifiable experiment.
+
+**Enforcement:** Gate G1 checks each bundle for presence of all required files.
+
+-----
+
+### Rule 3: Claim Boundedness
+
+Claims must be **short and specific** (heuristic: ≤3 sentences, ~500 characters).
+
+**Bad claim (unbounded):**
+
+> “This theory explains consciousness by showing that quantum coherence in microtubules creates a resonant field that unifies all aspects of awareness across multiple scales…”
+
+**Good claim (bounded):**
+
+> “In the RFO network with plastic coupling, there exists a ringing wedge in (K,γ) space where sustained resonance occurs under constant drive, bounded by non-ringing regimes.”
+
+**Why:** Unbounded claims can’t be falsified. Short claims force clarity.
+
+**Enforcement:** Gate G1 warns if CLAIM.md exceeds reasonable length.
+
+-----
+
+### Rule 4: Numeric Null Thresholds
+
+NULLS.md must contain **at least 2 numeric thresholds** that would reject the claim.
+
+**Bad nulls (vague):**
+
+> “Reject if no clear signal is observed.”
+
+**Good nulls (numeric):**
+
+> “Reject if Δ_PSD_dB < 6.0 OR N_over < 2 OR r_mean < 0.35”
+
+**Why:** Numeric thresholds prevent moving goalposts. If the threshold is locked before the run, results are either above or below it - no interpretation needed.
+
+**Enforcement:** Gate G1 counts numeric literals in NULLS.md and fails if <2.
+
+-----
+
+## Enforcement Mechanism
+
+### Automated Gate (CI)
+
+Gate G1 runs on every push/PR via GitHub Actions:
+
+```yaml
+- name: Run Gate G1 enforcement
+  run: python standards/rm01/enforce_bundle_contract.py
+```
+
+**Exit codes:**
+
+- `0` = Pass (contract satisfied)
+- `1` = Fail (violations found)
+
+If Gate G1 fails, the PR cannot merge.
+
+### Manual Enforcement
+
+Run locally before committing:
+
+```bash
+python standards/rm01/enforce_bundle_contract.py
+```
+
+Fix any violations before pushing.
+
+-----
+
+## Violation Categories
+
+### ERROR (blocking)
+
+Must be fixed before merge:
+
+- Bundle artifact in root
+- Missing required file (CLAIM, NULLS, OPERATIONALIZE, PREREG)
+- <2 numeric thresholds in NULLS.md
+
+### WARNING (advisory)
+
+Should fix but not blocking:
+
+- CLAIM.md seems very long
+- Bundle missing src/ directory
+- Bundle missing tests/ directory
+
+-----
+
+## Examples
+
+### Valid Bundle Structure
+
+```
+bundles/0001_rfo_ringing_wedge/
+├── CLAIM.md              ✓ Present, bounded
+├── NULLS.md              ✓ Present, ≥2 numeric thresholds
+├── OPERATIONALIZE.md     ✓ Present
+├── PREREG.yaml           ✓ Present
+├── src/
+│   └── experiment_*.py   ✓ Runnable code
+├── tests/
+│   └── test_*.py         ✓ Tests
+└── README.md
+```
+
+**Gate G1:** ✅ PASS
+
+### Invalid Bundle Structure
+
+```
+bundles/0002_broken_bundle/
+├── CLAIM.md              ✓ Present
+├── NULLS.md              ✗ No numeric thresholds
+└── src/
+    └── experiment.py
+```
+
+Missing:
+
+- OPERATIONALIZE.md
+- PREREG.yaml
+
+**Gate G1:** ❌ FAIL (2 errors)
+
+-----
+
+## Rationale
+
+### Why enforce this automatically?
+
+**Without enforcement:**
+
+- Bundles slowly drift from standard
+- Critical files get forgotten
+- Thresholds become vague
+- Repository becomes messy
+- Falsifiability erodes
+
+**With enforcement:**
+
+- Contract violations caught immediately
+- No bundle can exist without nulls
+- Repository stays organized
+- Standards are real, not aspirational
+
+-----
+
+## Relationship to Other Standards
+
+- **RM-02** (Red-Team): Assumes bundles pass RM-01 structure checks
+- **RM-03** (Falsifiability): Builds on RM-01’s numeric threshold requirement
+
+RM-01 is the foundation. If a bundle fails RM-01, other standards don’t apply yet.
+
+-----
+
+## History
+
+- **v1.0** (2025-12-27): Initial implementation
+  - Enforces root cleanliness
+  - Requires 4 core files
+  - Validates numeric thresholds
+  - Automated via Gate G1
+
+-----
+
+## See Also
+
+- `standards/rm01/enforce_bundle_contract.py` - Enforcement script
+- `.github/workflows/enforce_gates.yml` - CI workflow
+- `bundles/0001_rfo_ringing_wedge/` - Example valid bundle
+- RG² Charter - Full compilation contract

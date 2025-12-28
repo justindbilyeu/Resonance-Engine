@@ -1,0 +1,322 @@
+# Bundle #0001 Validation Guide
+
+**Bundle:** 0001_rfo_ringing_wedge  
+**Status:** Ready for validation  
+**Purpose:** Prove Bundle #0001 executes and produces artifacts
+
+-----
+
+## What Validation Means
+
+Validation proves that:
+
+1. **The experiment runs** without errors
+1. **Artifacts are produced** deterministically
+1. **Null evaluation completes** with clear results
+1. **The bundle structure works** as specified
+
+**Validation does NOT mean:**
+
+- The claim is scientifically proven
+- The results are publication-ready
+- The theory is validated
+
+**Validation means:** The compilation contract is satisfied and the experiment is executable.
+
+-----
+
+## Validation Modes
+
+### Quick Mode (Smoke Test)
+
+**Purpose:** Fast validation that the experiment runs
+
+**Runtime:** ~1-2 minutes
+
+**Parameters:**
+
+- Grid: 3×3 (instead of 81×61)
+- Network size: N=32 (instead of 128)
+- Steps: 6,000 (instead of 200,000)
+- Replicates: 1 (instead of 3)
+- No negative control
+
+**Command:**
+
+```bash
+./validate_bundle_0001.sh
+```
+
+**What it produces:**
+
+- `run_artifacts/smoke_YYYYMMDD_HHMMSS/` - Timestamped output
+- All required artifacts (parameters, seeds, grid, report, evaluation)
+- `VALIDATION_SUMMARY.md` - Summary of what was validated
+- `DEVIATIONS_FROM_PREREG.md` - Note that this is not prereg-compliant
+
+**Pass criteria:**
+
+- ✅ Experiment runs without errors
+- ✅ All artifacts generated
+- ✅ JSON files are parseable
+- ✅ CSV files are readable
+- ✅ Null evaluation completes
+
+### Full Mode (Preregistered)
+
+**Purpose:** Actual scientific run following prereg exactly
+
+**Runtime:** Several hours (depends on hardware)
+
+**Parameters:**
+
+- Grid: 81×61 = 4,941 points
+- Network size: N=128
+- Steps: 200,000 per point
+- Replicates: 3
+- Includes negative control
+
+**Command:**
+
+```bash
+cd bundles/0001_rfo_ringing_wedge
+python src/experiment_0001_rfo_ringing_wedge.py --out run_artifacts/prereg_$(date +%Y%m%d)
+```
+
+**What it produces:**
+
+- Full parameter sweep results
+- Negative control comparison
+- Prereg-compliant evaluation
+- ~15,000 point files (3 reps × 4,941 points)
+
+**Pass criteria:**
+
+- ✅ All smoke test criteria
+- ✅ Full grid completed
+- ✅ Negative control completed
+- ✅ All 4 nulls evaluated
+- ✅ Results determine claim acceptance/rejection
+
+-----
+
+## Running Validation
+
+### Step 1: Quick Validation (DO THIS FIRST)
+
+```bash
+# Make script executable
+chmod +x validate_bundle_0001.sh
+
+# Run smoke test
+./validate_bundle_0001.sh
+```
+
+**Expected output:**
+
+```
+=== Bundle #0001 Smoke Test Validation ===
+Timestamp: 20251227_143022
+Output directory: bundles/0001_rfo_ringing_wedge/run_artifacts/smoke_20251227_143022
+
+[1/4] Running experiment in --quick mode...
+[bundle 0001] wrote outputs to: ...
+[bundle 0001] rejected: False
+
+[2/4] Verifying required artifacts...
+  ✓ parameters_used.json
+  ✓ seed_manifest.json
+  ✓ grid.csv
+  ✓ wedge_report.md
+  ✓ null_evaluation.json
+  ✓ DEVIATIONS_FROM_PREREG.md
+  ✓ points/ directory (9 files)
+
+[3/4] Null evaluation results:
+  Claim rejected: False
+  [PASS] null1_no_ringing_anywhere
+  [PASS] null2_no_wedge_region
+  [PASS] null3_no_bounded_wedge
+  [REJECT] null4_negative_control_contradiction
+
+[4/4] Creating validation summary...
+
+=== Validation Complete ===
+```
+
+### Step 2: Inspect Results
+
+```bash
+# Read validation summary
+cat bundles/0001_rfo_ringing_wedge/run_artifacts/smoke_*/VALIDATION_SUMMARY.md
+
+# Read wedge report
+cat bundles/0001_rfo_ringing_wedge/run_artifacts/smoke_*/wedge_report.md
+
+# Examine null evaluation
+python3 -m json.tool bundles/0001_rfo_ringing_wedge/run_artifacts/smoke_*/null_evaluation.json
+```
+
+### Step 3: Commit Run Artifacts
+
+```bash
+# Run artifacts prove the bundle works
+git add bundles/0001_rfo_ringing_wedge/run_artifacts/
+git commit -m "Add Bundle #0001 smoke test validation artifacts"
+git push
+```
+
+**This commits proof that Bundle #0001 executes.**
+
+-----
+
+## Continuous Integration
+
+GitHub Actions automatically validates Bundle #0001 on every push:
+
+**Workflow:** `.github/workflows/validate_bundle_0001.yml`
+
+**Runs:**
+
+1. Smoke test (–quick mode)
+1. Artifact verification
+1. Null evaluation display
+1. Unit tests (pytest)
+
+**If validation fails in CI, the PR cannot merge.**
+
+-----
+
+## Interpreting Results
+
+### Null Evaluation Structure
+
+```json
+{
+  "rejected": false,
+  "nulls": {
+    "null1_no_ringing_anywhere": {
+      "reject": false,
+      "S": 4
+    },
+    "null2_no_wedge_region": {
+      "reject": false,
+      "area_fraction": 0.44,
+      "lcc_size": 3,
+      "thresholds": {"min_area_fraction": 0.02, "min_lcc_size": 20}
+    },
+    ...
+  }
+}
+```
+
+**Fields:**
+
+- `rejected` - Overall: was claim rejected by any null?
+- `nulls[*].reject` - Did this specific null reject the claim?
+- Additional fields show measured values vs thresholds
+
+### Claim Status
+
+**If `rejected = false`:**
+
+- ✅ Claim is **supported** by this run
+- All 4 nulls passed
+- The ringing wedge exists under these conditions
+
+**If `rejected = true`:**
+
+- ❌ Claim is **rejected** by this run
+- At least one null fired
+- The ringing wedge does NOT exist under these conditions
+
+**Note:** Quick mode results are NOT scientifically meaningful - grid is too coarse.
+
+-----
+
+## What Passing Validation Proves
+
+### Smoke Test Pass
+
+Proves:
+
+- ✅ Code executes without runtime errors
+- ✅ Artifact generation works
+- ✅ Null evaluation logic is implemented
+- ✅ Bundle structure is valid
+- ✅ Determinism is achieved (seeds work)
+
+Does NOT prove:
+
+- ❌ Scientific validity of results
+- ❌ Claim is true/false
+- ❌ Prereg compliance
+
+### Full Run Pass
+
+Proves all smoke test items PLUS:
+
+- ✅ Full parameter space explored
+- ✅ Negative control comparison done
+- ✅ Prereg compliance maintained
+- ✅ Claim acceptance/rejection determined
+
+-----
+
+## Common Issues
+
+### Issue: Python dependencies missing
+
+**Error:** `ModuleNotFoundError: No module named 'numpy'`
+
+**Fix:**
+
+```bash
+pip install numpy
+```
+
+### Issue: Permission denied on script
+
+**Error:** `Permission denied: ./validate_bundle_0001.sh`
+
+**Fix:**
+
+```bash
+chmod +x validate_bundle_0001.sh
+```
+
+### Issue: Validation fails but code is correct
+
+Check:
+
+1. Are you in the repository root?
+1. Is the bundle in `bundles/0001_rfo_ringing_wedge/`?
+1. Do required files exist (CLAIM.md, NULLS.md, etc.)?
+
+### Issue: Quick mode is too slow
+
+Quick mode should take 1-2 minutes on modern hardware. If it’s slower:
+
+- Check CPU usage (other processes?)
+- Try smaller grid: edit script to use 2×2 instead of 3×3
+- This is normal for full mode (hours)
+
+-----
+
+## Next Steps After Validation
+
+Once Bundle #0001 smoke test passes:
+
+1. **Commit the run artifacts** - Proof that it works
+1. **Enforce Gate G1** - Bundle contract enforcement
+1. **Run full prereg sweep** (optional, takes hours)
+1. **Compile Bundle #0002** - Prove the approach scales
+
+-----
+
+## See Also
+
+- `bundles/0001_rfo_ringing_wedge/CLAIM.md` - What’s being tested
+- `bundles/0001_rfo_ringing_wedge/NULLS.md` - Rejection criteria
+- `bundles/0001_rfo_ringing_wedge/README.md` - Bundle overview
+- `standards/rm01/README.md` - Bundle contract standard

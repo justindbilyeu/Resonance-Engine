@@ -1,0 +1,94 @@
+name: Validate Bundle 0001
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'bundles/0001_rfo_ringing_wedge/**'
+      - '.github/workflows/validate_bundle_0001.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'bundles/0001_rfo_ringing_wedge/**'
+      - '.github/workflows/validate_bundle_0001.yml'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  smoke-test:
+    name: Bundle 0001 Smoke Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pytest
+    
+    - name: Run smoke test
+      run: |
+        cd bundles/0001_rfo_ringing_wedge
+        python src/experiment_0001_rfo_ringing_wedge.py --quick --out outputs_ci --no-negative-control
+    
+    - name: Verify artifacts
+      run: |
+        cd bundles/0001_rfo_ringing_wedge/outputs_ci
+        test -f parameters_used.json
+        test -f seed_manifest.json
+        test -f grid.csv
+        test -f wedge_report.md
+        test -f null_evaluation.json
+        test -d points
+        echo "✓ All required artifacts present"
+    
+    - name: Display null evaluation
+      run: |
+        echo "=== Null Evaluation Results ==="
+        python3 -c "
+import json
+with open('bundles/0001_rfo_ringing_wedge/outputs_ci/null_evaluation.json') as f:
+    data = json.load(f)
+    print(f\"Claim rejected: {data['rejected']}\")
+    print()
+    for null_name, null_data in data['nulls'].items():
+        reject = null_data['reject']
+        status = 'REJECT' if reject else 'PASS'
+        print(f'  [{status}] {null_name}')
+"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: bundle-0001-smoke-test
+        path: bundles/0001_rfo_ringing_wedge/outputs_ci/
+        retention-days: 30
+  
+  unit-tests:
+    name: Bundle 0001 Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pytest
+    
+    - name: Run pytest
+      run: |
+        pytest bundles/0001_rfo_ringing_wedge/tests/ -v
