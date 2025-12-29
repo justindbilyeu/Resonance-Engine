@@ -57,7 +57,8 @@ def test_bundle_0001_runs_and_produces_outputs():
     # Check for key top-level fields
     assert "bundle_id" in null_eval, "null_evaluation.json missing bundle_id"
     assert "mode" in null_eval, "null_evaluation.json missing mode"
-    assert "nulls" in null_eval, "null_evaluation.json missing nulls"
+    assert "claim_rejected" in null_eval, "null_evaluation.json missing claim_rejected"
+    assert "rejection_criteria" in null_eval, "null_evaluation.json missing rejection_criteria"
 
     print("Bundle 0001 execution test passed")
     print(f"   Outputs created in: {output_dir}")

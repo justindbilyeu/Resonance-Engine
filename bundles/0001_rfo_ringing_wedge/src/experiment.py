@@ -354,7 +354,7 @@ def eval_nulls(
     null2_fail = (area_frac < null2_area_frac_min) or (cc < null2_cc_min)
     null2 = {
         "name": "null2_region_minimums",
-        "fail": bool(null2_fail),
+        "triggered": bool(null2_fail),
         "details": {
             "area_frac": float(area_frac),
             "area_frac_min": float(null2_area_frac_min),
@@ -382,7 +382,7 @@ def eval_nulls(
     null3_fail = not row_spans_ok
     null3 = {
         "name": "null3_unbounded_or_empty_rows",
-        "fail": bool(null3_fail),
+        "triggered": bool(null3_fail),
         "details": {
             "span_frac_max": float(null3_span_frac_max),
             "row_spans_ok": bool(row_spans_ok),
@@ -402,7 +402,7 @@ def eval_nulls(
         fail = (S > 0) and (S_nc >= null4_area_ratio_min * S)
         null4 = {
             "name": "null4_negative_control",
-            "fail": bool(fail),
+            "triggered": bool(fail),
             "details": {
                 "S": int(S),
                 "S_nc": int(S_nc),
@@ -436,6 +436,9 @@ def quick_grid(K_min: float, K_max: float, gamma_min: float, gamma_max: float) -
 
 
 def run_bundle(config_path: Path, outdir: Path, quick: bool, no_negative_control: bool, max_points: int | None) -> None:
+    """
+    Run bundle experiment. On error, preserves output directory and writes error.txt.
+    """
     cfg = read_yaml(config_path)
 
     # Load prereg parameters
@@ -494,263 +497,273 @@ def run_bundle(config_path: Path, outdir: Path, quick: bool, no_negative_control
 
     ensure_dir(outdir)
 
-    # Seed manifest
-    seed_manifest: List[dict] = []
+    try:
+        # Seed manifest
+        seed_manifest: List[dict] = []
 
-    # Accumulate per-replicate results
-    all_point_results: List[PointResult] = []
+        # Accumulate per-replicate results
+        all_point_results: List[PointResult] = []
 
-    total_points = K_vals.size * g_vals.size
-    # Optional cap for development sanity
-    cap = max_points if (max_points is not None and max_points > 0) else None
+        total_points = K_vals.size * g_vals.size
+        # Optional cap for development sanity
+        cap = max_points if (max_points is not None and max_points > 0) else None
 
-    point_counter = 0
-    for gi, gamma in enumerate(g_vals):
-        for ki, K in enumerate(K_vals):
-            point_counter += 1
+        point_counter = 0
+        for gi, gamma in enumerate(g_vals):
+            for ki, K in enumerate(K_vals):
+                point_counter += 1
+                if cap is not None and point_counter > cap:
+                    break
+
+                rep_labels: List[bool] = []
+                rep_metrics: List[Tuple[float, float, int]] = []
+                invalid_any = False
+                invalid_reasons: List[str] = []
+
+                for rep in range(reps):
+                    seed = stable_seed(base_seed, float(K), float(gamma), int(rep))
+                    seed_manifest.append({"K": float(K), "gamma": float(gamma), "rep": int(rep), "seed": int(seed)})
+
+                    pr, _ = simulate_point(
+                        N=N, K=float(K), gamma=float(gamma), rep=rep,
+                        dt=dt, steps_total=steps_total, steps_burnin=steps_burnin, steps_measure=steps_measure,
+                        omega_mean=omega_mean, omega_std=omega_std,
+                        D=D, Omega=Omega,
+                        plasticity_enabled=True, alpha=alpha, beta=beta,
+                        W_init_value=W_init_value, W_max=W_max,
+                        seed=seed,
+                        thr_psd_db=thr_psd_db, thr_n_over=thr_n_over, thr_r_mean=thr_r_mean,
+                    )
+                    all_point_results.append(pr)
+                    if pr.invalid:
+                        invalid_any = True
+                        invalid_reasons.append(pr.reason)
+                    rep_labels.append(pr.ring_label)
+                    rep_metrics.append((pr.r_mean, pr.delta_psd_db, pr.n_over))
+
+                # Majority vote for grid label
+                # If invalids occur, we still vote, but record invalid status in CSV
+                # (stopping_rules in PREREG covers invalid_rate > 1% at sweep level; not enforced here yet)
+                _ = majority_vote(rep_labels)
+
             if cap is not None and point_counter > cap:
                 break
 
-            rep_labels: List[bool] = []
-            rep_metrics: List[Tuple[float, float, int]] = []
-            invalid_any = False
-            invalid_reasons: List[str] = []
+        # Aggregate to grid with majority vote (by point)
+        # Build a dict keyed by (gamma_index, K_index) -> list of replicates
+        # We reconstruct the grid by grouping results per (K,gamma).
+        point_map: Dict[Tuple[float, float], List[PointResult]] = {}
+        for pr in all_point_results:
+            key = (float(pr.K), float(pr.gamma))
+            point_map.setdefault(key, []).append(pr)
 
-            for rep in range(reps):
-                seed = stable_seed(base_seed, float(K), float(gamma), int(rep))
-                seed_manifest.append({"K": float(K), "gamma": float(gamma), "rep": int(rep), "seed": int(seed)})
+        H = g_vals.size
+        W = K_vals.size
+        grid_mask = np.zeros((H, W), dtype=bool)
 
-                pr, _ = simulate_point(
-                    N=N, K=float(K), gamma=float(gamma), rep=rep,
-                    dt=dt, steps_total=steps_total, steps_burnin=steps_burnin, steps_measure=steps_measure,
-                    omega_mean=omega_mean, omega_std=omega_std,
-                    D=D, Omega=Omega,
-                    plasticity_enabled=True, alpha=alpha, beta=beta,
-                    W_init_value=W_init_value, W_max=W_max,
-                    seed=seed,
-                    thr_psd_db=thr_psd_db, thr_n_over=thr_n_over, thr_r_mean=thr_r_mean,
-                )
-                all_point_results.append(pr)
-                if pr.invalid:
-                    invalid_any = True
-                    invalid_reasons.append(pr.reason)
-                rep_labels.append(pr.ring_label)
-                rep_metrics.append((pr.r_mean, pr.delta_psd_db, pr.n_over))
-
-            # Majority vote for grid label
-            # If invalids occur, we still vote, but record invalid status in CSV
-            # (stopping_rules in PREREG covers invalid_rate > 1% at sweep level; not enforced here yet)
-            _ = majority_vote(rep_labels)
-
-        if cap is not None and point_counter > cap:
-            break
-
-    # Aggregate to grid with majority vote (by point)
-    # Build a dict keyed by (gamma_index, K_index) -> list of replicates
-    # We reconstruct the grid by grouping results per (K,gamma).
-    point_map: Dict[Tuple[float, float], List[PointResult]] = {}
-    for pr in all_point_results:
-        key = (float(pr.K), float(pr.gamma))
-        point_map.setdefault(key, []).append(pr)
-
-    H = g_vals.size
-    W = K_vals.size
-    grid_mask = np.zeros((H, W), dtype=bool)
-
-    grid_rows: List[dict] = []
-    for gi, gamma in enumerate(g_vals):
-        for ki, K in enumerate(K_vals):
-            key = (float(K), float(gamma))
-            reps_pr = point_map.get(key, [])
-            if not reps_pr:
-                continue
-
-            labels = [p.ring_label for p in reps_pr if not p.invalid]
-            # If all invalid, treat as non-ringing but mark invalid_rate via reason
-            if len(labels) == 0:
-                ring = False
-                invalid_rate = 1.0
-            else:
-                ring = majority_vote(labels)
-                invalid_rate = float(np.mean([p.invalid for p in reps_pr]))
-
-            # Aggregate metrics as means over reps
-            r_mean = float(np.mean([p.r_mean for p in reps_pr]))
-            d_db = float(np.mean([p.delta_psd_db for p in reps_pr]))
-            n_over = float(np.mean([p.n_over for p in reps_pr]))
-
-            grid_mask[gi, ki] = bool(ring)
-
-            grid_rows.append({
-                "K": float(K),
-                "gamma": float(gamma),
-                "ring_label": int(ring),
-                "r_mean": r_mean,
-                "Delta_PSD_dB": d_db,
-                "N_over": n_over,
-                "replicates": int(len(reps_pr)),
-                "invalid_rate": float(invalid_rate),
-            })
-
-    # Write grid.csv
-    grid_path = outdir / "grid.csv"
-    with grid_path.open("w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(grid_rows[0].keys()) if grid_rows else ["K", "gamma"])
-        w.writeheader()
-        for row in grid_rows:
-            w.writerow(row)
-
-    # Null 1: "ringing anywhere" — check if any point satisfies the triple threshold
-    # Use majority-voted grid rows (not individual reps) to match S definition.
-    any_ringing = any(
-        (row["Delta_PSD_dB"] >= thr_psd_db) and (row["N_over"] >= thr_n_over) and (row["r_mean"] >= thr_r_mean)
-        for row in grid_rows
-    )
-    null1_fail = not any_ringing
-    null1 = {
-        "name": "null1_no_ringing_anywhere",
-        "fail": bool(null1_fail),
-        "details": {
-            "thresholds": {"Delta_PSD_dB": thr_psd_db, "N_over": thr_n_over, "r_mean": thr_r_mean},
-            "any_point_passed": bool(any_ringing),
-        },
-    }
-
-    # Negative control (plasticity off)
-    negative_control_mask = None
-    if (not no_negative_control) and (not quick):
-        # Run a *cheap* negative control pass by reusing the same grid but 1 replicate.
-        # This is still expensive for full grid; you can cap points during development with --max-points.
-        nc_point_map: Dict[Tuple[float, float], List[PointResult]] = {}
+        grid_rows: List[dict] = []
         for gi, gamma in enumerate(g_vals):
             for ki, K in enumerate(K_vals):
-                if cap is not None and (gi * W + ki + 1) > cap:
-                    break
-                seed = stable_seed(base_seed, float(K), float(gamma), 0)
-                pr, _ = simulate_point(
-                    N=N, K=float(K), gamma=float(gamma), rep=0,
-                    dt=dt, steps_total=steps_total, steps_burnin=steps_burnin, steps_measure=steps_measure,
-                    omega_mean=omega_mean, omega_std=omega_std,
-                    D=D, Omega=Omega,
-                    plasticity_enabled=False, alpha=0.0, beta=beta,
-                    W_init_value=W_init_value, W_max=W_max,
-                    seed=seed,
-                    thr_psd_db=thr_psd_db, thr_n_over=thr_n_over, thr_r_mean=thr_r_mean,
-                )
-                nc_point_map.setdefault((float(K), float(gamma)), []).append(pr)
-
-        negative_control_mask = np.zeros_like(grid_mask, dtype=bool)
-        for gi, gamma in enumerate(g_vals):
-            for ki, K in enumerate(K_vals):
-                reps_pr = nc_point_map.get((float(K), float(gamma)), [])
+                key = (float(K), float(gamma))
+                reps_pr = point_map.get(key, [])
                 if not reps_pr:
                     continue
-                ring = majority_vote([p.ring_label for p in reps_pr if not p.invalid])
-                negative_control_mask[gi, ki] = bool(ring)
 
-    nulls = eval_nulls(
-        grid_mask=grid_mask,
-        K_values=K_vals,
-        gamma_values=g_vals,
-        negative_control_mask=negative_control_mask,
-        null2_area_frac_min=0.02,
-        null2_cc_min=20,
-        null3_span_frac_max=0.60,
-        null4_area_ratio_min=0.80,
-    )
-    nulls["null1"] = null1
+                labels = [p.ring_label for p in reps_pr if not p.invalid]
+                # If all invalid, treat as non-ringing but mark invalid_rate via reason
+                if len(labels) == 0:
+                    ring = False
+                    invalid_rate = 1.0
+                else:
+                    ring = majority_vote(labels)
+                    invalid_rate = float(np.mean([p.invalid for p in reps_pr]))
 
-    # Overall rejection if ANY applicable null fails
-    null_fail_flags = []
-    for k, v in nulls.items():
-        if v.get("skip", False):
-            continue
-        null_fail_flags.append(bool(v.get("fail", False)))
-    rejected = any(null_fail_flags)
+                # Aggregate metrics as means over reps
+                r_mean = float(np.mean([p.r_mean for p in reps_pr]))
+                d_db = float(np.mean([p.delta_psd_db for p in reps_pr]))
+                n_over = float(np.mean([p.n_over for p in reps_pr]))
 
-    # Write null_evaluation.json
-    null_eval = {
-        "bundle_id": cfg.get("bundle_id", "0001_rfo_ringing_wedge"),
-        "mode": "quick" if quick else "full",
-        "rejected": bool(rejected),
-        "nulls": nulls,
-        "grid_shape": {"gamma": int(H), "K": int(W)},
-        "summary": {
-            "S": int(np.sum(grid_mask)),
-            "grid_points": int(H * W),
-            "area_frac": float(np.sum(grid_mask) / max(1, H * W)),
-            "largest_cc": int(largest_connected_component_size(grid_mask)),
-        },
-    }
-    write_text(outdir / "null_evaluation.json", json.dumps(null_eval, indent=2))
+                grid_mask[gi, ki] = bool(ring)
 
-    # Write parameters_used.json
-    params_used = {
-        "bundle_id": cfg.get("bundle_id"),
-        "version": cfg.get("version"),
-        "mode": "quick" if quick else "full",
-        "effective": {
-            "dt": dt,
-            "steps_total": steps_total,
-            "steps_burnin": steps_burnin,
-            "steps_measure": steps_measure,
-            "N": N,
-            "K_num": int(K_vals.size),
-            "gamma_num": int(g_vals.size),
-            "replicates_per_point": int(reps),
-        },
-        "deviations": deviations,
-        "notes": "All files written as UTF-8. Seeds use stable sha256-based hash.",
-    }
-    write_text(outdir / "parameters_used.json", json.dumps(params_used, indent=2))
+                grid_rows.append({
+                    "K": float(K),
+                    "gamma": float(gamma),
+                    "ring_label": int(ring),
+                    "r_mean": r_mean,
+                    "Delta_PSD_dB": d_db,
+                    "N_over": n_over,
+                    "replicates": int(len(reps_pr)),
+                    "invalid_rate": float(invalid_rate),
+                })
 
-    # Write seed_manifest.json
-    write_text(outdir / "seed_manifest.json", json.dumps(seed_manifest, indent=2))
+        # Write grid.csv
+        grid_path = outdir / "grid.csv"
+        with grid_path.open("w", encoding="utf-8", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(grid_rows[0].keys()) if grid_rows else ["K", "gamma"])
+            w.writeheader()
+            for row in grid_rows:
+                w.writerow(row)
 
-    # Write wedge_report.md (text-only report)
-    report_lines = []
-    report_lines.append(f"# Wedge Report — {cfg.get('bundle_id','0001_rfo_ringing_wedge')}")
-    report_lines.append("")
-    report_lines.append(f"- Mode: {'quick' if quick else 'full'}")
-    report_lines.append(f"- Grid: gamma={H}, K={W}")
-    report_lines.append(f"- Replicates per point: {reps}")
-    report_lines.append("")
-    report_lines.append("## Ringing thresholds (point-level)")
-    report_lines.append(f"- Δ_PSD_dB ≥ {thr_psd_db}")
-    report_lines.append(f"- N_over ≥ {thr_n_over}")
-    report_lines.append(f"- r_mean ≥ {thr_r_mean}")
-    report_lines.append("")
-    report_lines.append("## Sweep summary")
-    report_lines.append(f"- Ringing points |S|: {int(np.sum(grid_mask))} / {H*W} ({(np.sum(grid_mask)/max(1,H*W)):.4f})")
-    report_lines.append(f"- Largest connected component size (4-neighbor): {largest_connected_component_size(grid_mask)}")
-    report_lines.append("")
-    report_lines.append("## Null evaluation")
-    report_lines.append(f"- Rejected: **{rejected}**")
-    report_lines.append("")
-    for key in ["null1", "null2", "null3", "null4"]:
-        v = nulls.get(key, {})
-        if v.get("skip", False):
-            report_lines.append(f"- {v.get('name', key)}: SKIP — {v.get('reason','')}")
-        else:
-            report_lines.append(f"- {v.get('name', key)}: {'FAIL' if v.get('fail', False) else 'PASS'}")
-            details = v.get("details", {})
-            if details:
-                report_lines.append(f"  - details: `{json.dumps(details)}`")
-    report_lines.append("")
-    report_lines.append("## Files written")
-    report_lines.append(f"- {grid_path.name}")
-    report_lines.append("- null_evaluation.json")
-    report_lines.append("- parameters_used.json")
-    report_lines.append("- seed_manifest.json")
-    report_lines.append("- wedge_report.md")
-    report_lines.append("")
-    if deviations:
-        report_lines.append("## Deviations (recorded)")
-        for k, v in deviations.items():
-            report_lines.append(f"- {k}: {v}")
+        # Null 1: "ringing anywhere" — check if any point satisfies the triple threshold
+        # Use majority-voted grid rows (not individual reps) to match S definition.
+        any_ringing = any(
+            (row["Delta_PSD_dB"] >= thr_psd_db) and (row["N_over"] >= thr_n_over) and (row["r_mean"] >= thr_r_mean)
+            for row in grid_rows
+        )
+        null1_fail = not any_ringing
+        null1 = {
+            "name": "null1_no_ringing_anywhere",
+            "triggered": bool(null1_fail),
+            "details": {
+                "thresholds": {"Delta_PSD_dB": thr_psd_db, "N_over": thr_n_over, "r_mean": thr_r_mean},
+                "any_point_passed": bool(any_ringing),
+            },
+        }
+
+        # Negative control (plasticity off)
+        negative_control_mask = None
+        if (not no_negative_control) and (not quick):
+            # Run a *cheap* negative control pass by reusing the same grid but 1 replicate.
+            # This is still expensive for full grid; you can cap points during development with --max-points.
+            nc_point_map: Dict[Tuple[float, float], List[PointResult]] = {}
+            for gi, gamma in enumerate(g_vals):
+                for ki, K in enumerate(K_vals):
+                    if cap is not None and (gi * W + ki + 1) > cap:
+                        break
+                    seed = stable_seed(base_seed, float(K), float(gamma), 0)
+                    pr, _ = simulate_point(
+                        N=N, K=float(K), gamma=float(gamma), rep=0,
+                        dt=dt, steps_total=steps_total, steps_burnin=steps_burnin, steps_measure=steps_measure,
+                        omega_mean=omega_mean, omega_std=omega_std,
+                        D=D, Omega=Omega,
+                        plasticity_enabled=False, alpha=0.0, beta=beta,
+                        W_init_value=W_init_value, W_max=W_max,
+                        seed=seed,
+                        thr_psd_db=thr_psd_db, thr_n_over=thr_n_over, thr_r_mean=thr_r_mean,
+                    )
+                    nc_point_map.setdefault((float(K), float(gamma)), []).append(pr)
+
+            negative_control_mask = np.zeros_like(grid_mask, dtype=bool)
+            for gi, gamma in enumerate(g_vals):
+                for ki, K in enumerate(K_vals):
+                    reps_pr = nc_point_map.get((float(K), float(gamma)), [])
+                    if not reps_pr:
+                        continue
+                    ring = majority_vote([p.ring_label for p in reps_pr if not p.invalid])
+                    negative_control_mask[gi, ki] = bool(ring)
+
+        nulls = eval_nulls(
+            grid_mask=grid_mask,
+            K_values=K_vals,
+            gamma_values=g_vals,
+            negative_control_mask=negative_control_mask,
+            null2_area_frac_min=0.02,
+            null2_cc_min=20,
+            null3_span_frac_max=0.60,
+            null4_area_ratio_min=0.80,
+        )
+        nulls["null1"] = null1
+
+        # Overall rejection if ANY applicable null fails
+        null_fail_flags = []
+        for k, v in nulls.items():
+            if v.get("skip", False):
+                continue
+            null_fail_flags.append(bool(v.get("triggered", False)))
+        rejected = any(null_fail_flags)
+
+        # Write null_evaluation.json
+        null_eval = {
+            "bundle_id": cfg.get("bundle_id", "0001_rfo_ringing_wedge"),
+            "mode": "quick" if quick else "full",
+            "claim_rejected": bool(rejected),
+            "rejection_criteria": nulls,
+            "grid_shape": {"gamma": int(H), "K": int(W)},
+            "summary": {
+                "S": int(np.sum(grid_mask)),
+                "grid_points": int(H * W),
+                "area_frac": float(np.sum(grid_mask) / max(1, H * W)),
+                "largest_cc": int(largest_connected_component_size(grid_mask)),
+            },
+        }
+        write_text(outdir / "null_evaluation.json", json.dumps(null_eval, indent=2))
+
+        # Write parameters_used.json
+        params_used = {
+            "bundle_id": cfg.get("bundle_id"),
+            "version": cfg.get("version"),
+            "mode": "quick" if quick else "full",
+            "effective": {
+                "dt": dt,
+                "steps_total": steps_total,
+                "steps_burnin": steps_burnin,
+                "steps_measure": steps_measure,
+                "N": N,
+                "K_num": int(K_vals.size),
+                "gamma_num": int(g_vals.size),
+                "replicates_per_point": int(reps),
+            },
+            "deviations": deviations,
+            "notes": "All files written as UTF-8. Seeds use stable sha256-based hash.",
+        }
+        write_text(outdir / "parameters_used.json", json.dumps(params_used, indent=2))
+
+        # Write seed_manifest.json
+        write_text(outdir / "seed_manifest.json", json.dumps(seed_manifest, indent=2))
+
+        # Write wedge_report.md (text-only report)
+        report_lines = []
+        report_lines.append(f"# Wedge Report — {cfg.get('bundle_id','0001_rfo_ringing_wedge')}")
         report_lines.append("")
+        report_lines.append(f"- Mode: {'quick' if quick else 'full'}")
+        report_lines.append(f"- Grid: gamma={H}, K={W}")
+        report_lines.append(f"- Replicates per point: {reps}")
+        report_lines.append("")
+        report_lines.append("## Ringing thresholds (point-level)")
+        report_lines.append(f"- Δ_PSD_dB ≥ {thr_psd_db}")
+        report_lines.append(f"- N_over ≥ {thr_n_over}")
+        report_lines.append(f"- r_mean ≥ {thr_r_mean}")
+        report_lines.append("")
+        report_lines.append("## Sweep summary")
+        report_lines.append(f"- Ringing points |S|: {int(np.sum(grid_mask))} / {H*W} ({(np.sum(grid_mask)/max(1,H*W)):.4f})")
+        report_lines.append(f"- Largest connected component size (4-neighbor): {largest_connected_component_size(grid_mask)}")
+        report_lines.append("")
+        report_lines.append("## Claim evaluation")
+        report_lines.append(f"- Claim rejected by prereg criteria: **{rejected}**")
+        report_lines.append("")
+        for key in ["null1", "null2", "null3", "null4"]:
+            v = nulls.get(key, {})
+            if v.get("skip", False):
+                report_lines.append(f"- {v.get('name', key)}: SKIP — {v.get('reason','')}")
+            else:
+                report_lines.append(f"- {v.get('name', key)}: {'TRIGGERED' if v.get('triggered', False) else 'PASS'}")
+                details = v.get("details", {})
+                if details:
+                    report_lines.append(f"  - details: `{json.dumps(details)}`")
+        report_lines.append("")
+        report_lines.append("## Files written")
+        report_lines.append(f"- {grid_path.name}")
+        report_lines.append("- null_evaluation.json")
+        report_lines.append("- parameters_used.json")
+        report_lines.append("- seed_manifest.json")
+        report_lines.append("- wedge_report.md")
+        report_lines.append("")
+        if deviations:
+            report_lines.append("## Deviations (recorded)")
+            for k, v in deviations.items():
+                report_lines.append(f"- {k}: {v}")
+            report_lines.append("")
 
-    write_text(outdir / "wedge_report.md", "\n".join(report_lines))
+        write_text(outdir / "wedge_report.md", "\n".join(report_lines))
+
+    except Exception as e:
+        # Preserve failed bundles: write error.txt instead of deleting output
+        import traceback
+        error_msg = f"Bundle execution failed with exception:\n\n{type(e).__name__}: {e}\n\nTraceback:\n{traceback.format_exc()}"
+        error_path = outdir / "error.txt"
+        write_text(error_path, error_msg)
+        print(f"ERROR: Bundle failed. Error details written to: {error_path}")
+        raise
 
 
 def main() -> None:
