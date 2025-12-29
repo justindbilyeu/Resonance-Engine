@@ -1,0 +1,52 @@
+{
+  "bundle_id": "0001_rfo_ringing_wedge",
+  "mode": "quick",
+  "rejected": true,
+  "nulls": {
+    "null2": {
+      "name": "null2_region_minimums",
+      "fail": true,
+      "details": {
+        "area_frac": 0.0,
+        "area_frac_min": 0.02,
+        "largest_cc_size": 0,
+        "largest_cc_min": 20
+      }
+    },
+    "null3": {
+      "name": "null3_unbounded_or_empty_rows",
+      "fail": true,
+      "details": {
+        "span_frac_max": 0.6,
+        "row_spans_ok": false
+      }
+    },
+    "null4": {
+      "name": "null4_negative_control",
+      "skip": true,
+      "reason": "negative control not run (disabled or quick mode)"
+    },
+    "null1": {
+      "name": "null1_no_ringing_anywhere",
+      "fail": true,
+      "details": {
+        "thresholds": {
+          "Delta_PSD_dB": 6.0,
+          "N_over": 2,
+          "r_mean": 0.35
+        },
+        "any_point_passed": false
+      }
+    }
+  },
+  "grid_shape": {
+    "gamma": 3,
+    "K": 3
+  },
+  "summary": {
+    "S": 0,
+    "grid_points": 9,
+    "area_frac": 0.0,
+    "largest_cc": 0
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "bundle_id": "0001_rfo_ringing_wedge",
+  "version": "1.0",
+  "mode": "quick",
+  "effective": {
+    "dt": 0.01,
+    "steps_total": 1000,
+    "steps_burnin": 200,
+    "steps_measure": 800,
+    "N": 128,
+    "K_num": 3,
+    "gamma_num": 3,
+    "replicates_per_point": 1
+  },
+  "deviations": {
+    "mode": "quick",
+    "steps_total": "200000 -> 1000",
+    "steps_burnin": "50000 -> 200",
+    "steps_measure": "150000 -> 800",
+    "replicates_per_point": "3 -> 1",
+    "grid": "81x61 -> 3x3"
+  },
+  "notes": "All files written as UTF-8. Seeds use stable sha256-based hash."
+}
